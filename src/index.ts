@@ -1,0 +1,142 @@
+// 后续替换方案
+import FlakeId from './gen';
+import { bufToBigint } from 'bigint-conversion';
+import { SnowflakeOptions, BigInt2String } from './constant';
+import { isObject, allowedFields } from './util';
+
+export interface SnowflakeId {
+  constructor(options?: SnowflakeOptions): this;
+  next(callback?: (err: Error, id: Buffer) => void): Buffer;
+}
+
+/**
+ * Snowflake
+ * @description 雪花算法生成类
+ */
+export class Snowflake {
+  private static instance: Snowflake;
+  private instances = new Map();
+  private options: SnowflakeOptions = {};
+
+  /**
+   * @description 生成雪花算法ID
+   * @param options
+   */
+  static generate(options: SnowflakeOptions = {}): Buffer {
+    const snowflake = this.getInstance().setOptions(options);
+    return snowflake.next();
+  }
+
+  private maker(options: SnowflakeOptions = {}): any {
+    return new FlakeId(options);
+  }
+
+  /**
+   * @description 设置雪花算法配置
+   * @param options
+   */
+  public setOptions(options: SnowflakeOptions): any {
+    const defaultOptions: SnowflakeOptions = {};
+    if (isObject(options)) {
+      options = allowedFields(options, [
+        'datacenter',
+        'worker',
+        'id',
+        'epoch',
+        'seqMask'
+      ]);
+      if (Reflect.has(options, 'datacenter')) {
+        defaultOptions.datacenter = options.datacenter;
+      }
+      if (Reflect.has(options, 'worker')) {
+        defaultOptions.worker = options.worker;
+      }
+      if (Reflect.has(options, 'id')) {
+        defaultOptions.id = options.id;
+      }
+      if (Reflect.has(options, 'epoch')) {
+        defaultOptions.epoch = options.epoch;
+      }
+      if (Reflect.has(options, 'seqMask')) {
+        defaultOptions.seqMask = options.seqMask;
+      }
+    }
+    const instanceKey = JSON.stringify(defaultOptions);
+    if (!this.instances.has(instanceKey)) {
+      this.instances.set(instanceKey, this.maker(defaultOptions));
+    }
+    return this.instances.get(instanceKey);
+  }
+
+  /**
+   * @description 获取雪花算法配置
+   */
+  static get getOptions() {
+    return this.getInstance().options;
+  }
+
+  /**
+   * @description 快速生成雪花id，Buffer
+   */
+  static generateSnowflakeIdBuffer(options?: SnowflakeOptions): Buffer {
+    return this.generate(options);
+  }
+
+  /**
+   * @description 快速生成雪花id，BigInt
+   */
+  static generateSnowflakeIdBigint(): BigInt {
+    return bufToBigint(this.generateSnowflakeIdBuffer());
+  }
+
+  /**
+   * @description 快速生成雪花id，String(BigInt)
+   */
+  static generateSnowflakeIdString(): BigInt2String {
+    return String(this.generateSnowflakeIdBigint());
+  }
+
+  /**
+   * @description Snowflake Instance
+   */
+  static getInstance(): Snowflake {
+    let instance = this.instance;
+    if (!instance || !(instance instanceof this)) {
+      instance = this.instance = new Snowflake();
+    }
+    return instance;
+  }
+}
+
+/**
+ * 快速生成雪花id，Buffer
+ * @param options
+ * @return Buffer
+ */
+export const generateSnowflakeIdBuffer = (
+  options?: SnowflakeOptions
+): Buffer => {
+  return isObject(options) ? Snowflake.generate(options) : Snowflake.generate();
+};
+
+/**
+ * 快速生成雪花id，BigInt
+ * @param options
+ * @return BigInt
+ */
+export const generateSnowflakeIdBigint = (
+  options?: SnowflakeOptions
+): BigInt => {
+  return bufToBigint(generateSnowflakeIdBuffer(options));
+};
+
+/**
+ * 快速生成雪花id，String(BigInt)
+ * @param options
+ * @return String(BigInt)
+ */
+export const generateSnowflakeIdString = (
+  options?: SnowflakeOptions
+): BigInt2String => {
+  return String(generateSnowflakeIdBigint(options));
+};
