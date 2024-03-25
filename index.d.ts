@@ -1,3 +1,29 @@
+interface FlakeIdOptions {
+    id?: number;
+    datacenter?: number;
+    worker?: number;
+    epoch?: number;
+    seqMask?: number;
+}
+declare class FlakeId {
+    private options;
+    private id;
+    private genId;
+    private epoch;
+    private seq;
+    private lastTime;
+    private overflow;
+    private seqMask;
+    static POW10: number;
+    static POW26: number;
+    private datacenter;
+    private worker;
+    constructor(options?: FlakeIdOptions);
+    next(cb?: (err: Error | null, id?: Buffer) => void): Buffer | undefined;
+    private handleOverflow;
+    private generateId;
+}
+
 interface SnowflakeOptions {
     datacenter?: number | undefined;
     worker?: number | undefined;
@@ -7,10 +33,6 @@ interface SnowflakeOptions {
 }
 declare type BigInt2String = string;
 
-interface SnowflakeId {
-    constructor(options?: SnowflakeOptions): this;
-    next(callback?: (err: Error, id: Buffer) => void): Buffer;
-}
 /**
  * Snowflake
  * @description 雪花算法生成类
@@ -18,7 +40,6 @@ interface SnowflakeId {
 declare class Snowflake {
     private static instance;
     private instances;
-    private options;
     /**
      * @description 生成雪花算法ID
      * @param options
@@ -29,11 +50,7 @@ declare class Snowflake {
      * @description 设置雪花算法配置
      * @param options
      */
-    setOptions(options: SnowflakeOptions): any;
-    /**
-     * @description 获取雪花算法配置
-     */
-    static get getOptions(): SnowflakeOptions;
+    setOptions(options: SnowflakeOptions): FlakeId;
     /**
      * @description 快速生成雪花id，Buffer
      */
@@ -41,11 +58,11 @@ declare class Snowflake {
     /**
      * @description 快速生成雪花id，BigInt
      */
-    static generateSnowflakeIdBigint(): BigInt;
+    static generateSnowflakeIdBigint(options?: SnowflakeOptions): BigInt;
     /**
      * @description 快速生成雪花id，String(BigInt)
      */
-    static generateSnowflakeIdString(): BigInt2String;
+    static generateSnowflakeIdString(options?: SnowflakeOptions): BigInt2String;
     /**
      * @description Snowflake Instance
      */
@@ -70,4 +87,4 @@ declare const generateSnowflakeIdBigint: (options?: SnowflakeOptions) => BigInt;
  */
 declare const generateSnowflakeIdString: (options?: SnowflakeOptions) => BigInt2String;
 
-export { Snowflake, SnowflakeId, generateSnowflakeIdBigint, generateSnowflakeIdBuffer, generateSnowflakeIdString };
+export { Snowflake, generateSnowflakeIdBigint, generateSnowflakeIdBuffer, generateSnowflakeIdString };
