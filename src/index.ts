@@ -115,3 +115,11 @@ export const generateSnowflakeIdBigint = (options?: SnowflakeOptions): BigInt =>
 export const generateSnowflakeIdString = (options?: SnowflakeOptions): BigInt2String => {
   return String(generateSnowflakeIdBigint(options))
 }
+
+/**
+ * 快速生成雪花id，String(BigInt)
+ * @param options
+ */
+export const snowflakeId = (options?: SnowflakeOptions): BigInt2String => {
+  return generateSnowflakeIdString(options)
+}

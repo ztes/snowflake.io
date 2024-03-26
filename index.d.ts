@@ -86,5 +86,10 @@ declare const generateSnowflakeIdBigint: (options?: SnowflakeOptions) => BigInt;
  * @return String(BigInt)
  */
 declare const generateSnowflakeIdString: (options?: SnowflakeOptions) => BigInt2String;
+/**
+ * 快速生成雪花id，String(BigInt)
+ * @param options
+ */
+declare const snowflakeId: (options?: SnowflakeOptions) => BigInt2String;
 
-export { Snowflake, generateSnowflakeIdBigint, generateSnowflakeIdBuffer, generateSnowflakeIdString };
+export { Snowflake, generateSnowflakeIdBigint, generateSnowflakeIdBuffer, generateSnowflakeIdString, snowflakeId };

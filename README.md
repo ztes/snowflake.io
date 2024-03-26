@@ -1,9 +1,9 @@
-# generate-snowflake-id
+# snowflake-id-maker
 Snowflake ID generator generates k ordered and conflict-free snowflake IDs in a distributed environment.
 雪花ID生成器，在分布式环境中生成 k 有序、无冲突的雪花ID。
 
 ## Installation ##
-$ pnpm add generate-snowflake-id ⏎
+$ pnpm add snowflake-id-maker ⏎
 
 ## Usage
 ``` typescript
@@ -18,7 +18,7 @@ export interface SnowflakeOptions {
 ```
 
 ``` typescript
-import { generateSnowflakeIdBuffer, generateSnowflakeIdBigint, generateSnowflakeIdString } from 'generate-snowflake-id'
+import { generateSnowflakeIdBuffer, generateSnowflakeIdBigint, generateSnowflakeIdString } from 'snowflake-id-maker'
     
 // snowflake.generateSnowflakeIdBuffer returns an 8-byte long node Buffer object, whose bytes represent a 64-bit long ID.
 // Configuration options are required in distributed environments.
@@ -52,10 +52,12 @@ generateSnowflakeIdString({
 }) // '7176875713503428608'
 // OR
 generateSnowflakeIdString() // '7176875713503428608'
+// OR
+snowflakeId() // '7176875713503428608'
 ```
 
 ``` typescript
-import { Snowflake } from 'generate-snowflake-id'
+import { Snowflake } from 'snowflake-id-maker'
     
 // Configuration options are required in distributed environments.
 const options: SnowflakeOptions = {
