@@ -1,6 +1,6 @@
 {
     "name": "snowflake-id-maker",
-    "version": "0.0.9",
+    "version": "0.0.10",
     "description": "Snowflake ID generator generates k ordered and conflict-free snowflake IDs in a distributed environment.",
     "main": "framework/umd/snowflake-id-maker.js",
     "module": "framework/es/snowflake-id-maker.js",

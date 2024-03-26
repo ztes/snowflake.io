@@ -5,6 +5,21 @@ Snowflake ID generator generates k ordered and conflict-free snowflake IDs in a 
 ## Installation ##
 $ pnpm add snowflake-id-maker ⏎
 
+## Simple usage:
+``` typescript
+import { snowflakeId } from 'snowflake-id-maker'
+// snowflakeId returns the Bigint value converted to a string.
+// Configuration options are required in distributed environments.
+// 生成为String类型的的雪花ID
+snowflakeId({
+  id: 100,
+  datacenter: 9,
+  worker: 7
+}) // 7176875713503428608
+// OR
+snowflakeId() // '7176875713503428608'
+```
+
 ## Usage
 ``` typescript
 // SnowflakeOptions
