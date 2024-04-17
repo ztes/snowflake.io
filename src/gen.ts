@@ -23,7 +23,7 @@ class FlakeId {
   constructor(private options: FlakeIdOptions = {}) {
     this.options = options || {}
 
-    if (typeof this.options.id !== 'undefined') {
+    if (typeof this.options.id === 'number') {
       this.id = this.options.id & 0x3ff
     } else {
       this.datacenter = (this.options.datacenter || 0) & 0x1f
