@@ -1,26 +1,26 @@
 {
-    "name": "generate-snowflake-id",
-    "version": "0.0.3",
-    "description": "Snowflake ID generator generates k ordered and conflict-free snowflake IDs in a distributed environment.",
+    "name": "snowflake.io",
+    "version": "0.0.0-alpha.3",
+    "description": "Snowflake.io, generates k-ordered, conflict-free snowflake IDs in a distributed environment.",
     "main": "framework/umd/snowflake-id-maker.js",
     "module": "framework/es/snowflake-id-maker.js",
     "typings": "framework/es/index.d.ts",
     "repository": {
         "type": "git",
-        "url": "https://github.com/ztes/snowflake-id-maker.git"
+        "url": "https://github.com/ztes/snowflake.io.git"
     },
     "bugs": {
-        "url": "https://github.com/ztes/snowflake-id-maker/issues"
+        "url": "https://github.com/ztes/snowflake.io/issues"
     },
     "author": "ztes.com <xy@ztes.com>",
     "blog": "https://ztes.com",
     "keywords": [
         "snowflake",
-        "snowflake id generator",
-        "snowflake id",
+        "snowflake.io",
         "snowflake-id",
-        "flake id",
         "flake-id",
+        "雪花算法",
+        "雪花id",
         "backend"
     ],
     "license": "MIT",
