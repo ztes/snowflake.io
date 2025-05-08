@@ -20,6 +20,7 @@ yarn add snowflake.io
 ## Quick Start / 快速开始
 
 ### Basic Usage / 基础用法
+
 ```typescript
 import { snowflakeId } from 'snowflake.io';
 
@@ -137,6 +138,7 @@ English: Sequence number bitmask
 ## Usage Examples / 使用示例
 
 ### Example 1: Direct Node ID / 直接指定节点ID
+
 ```typescript
 const id = snowflakeId({
   id: 42,  // 直接使用10位ID / Direct 10-bit ID
@@ -145,6 +147,7 @@ const id = snowflakeId({
 ```
 
 ### Example 2: Multi-Datacenter Deployment / 多数据中心部署
+
 ```typescript
 // 上海数据中心节点5 / Shanghai DC node 5
 const id = snowflakeId({
@@ -154,6 +157,7 @@ const id = snowflakeId({
 ```
 
 ### Example 3: High Concurrency / 高并发场景
+
 ```typescript
 // 减少序列号位数 / Reduce sequence bits
 const id = snowflakeId({
@@ -192,7 +196,7 @@ Snowflake.generateSnowflakeIdString({...});
 | 42 bits   | 5 bits     | 5 bits | 12 bits |
 
 
-**Example ID Breakdown / ID示例解析**:
+### Example ID Breakdown / ID示例解析
 
 | 010100001110000110101011101110100001000111 | 00111 | 00011 | 000000000000 |
 |--------------------------------------------|-------|-------|--------------|
