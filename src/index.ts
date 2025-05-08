@@ -1,7 +1,7 @@
 // 后续替换方案
-import FlakeId from './gen'
+import SnowflakeId from './gen'
 import { bufToBigint } from 'bigint-conversion'
-import { SnowflakeOptions, BigInt2String } from './constant'
+import { SnowflakeIOOptions, BigInt2String } from './constant'
 import { isObject, allowedFields } from './util'
 
 /**
@@ -10,27 +10,27 @@ import { isObject, allowedFields } from './util'
  */
 export class Snowflake {
   private static instance: Snowflake
-  private instances: Map<string, FlakeId> = new Map()
+  private instances: Map<string, SnowflakeId> = new Map()
 
   /**
    * @description 生成雪花算法ID
    * @param options
    */
-  static generate(options: SnowflakeOptions = {}): Buffer {
+  static generate(options: SnowflakeIOOptions = {}): Buffer {
     const snowflake = this.getInstance().setOptions(options)
     return snowflake.next() as Buffer
   }
 
-  private maker(options: SnowflakeOptions = {}): FlakeId {
-    return new FlakeId(options)
+  private maker(options: SnowflakeIOOptions = {}): SnowflakeId {
+    return new SnowflakeId(options)
   }
 
   /**
    * @description 设置雪花算法配置
    * @param options
    */
-  public setOptions(options: SnowflakeOptions): FlakeId {
-    const defaultOptions: SnowflakeOptions = {}
+  public setOptions(options: SnowflakeIOOptions): SnowflakeId {
+    const defaultOptions: SnowflakeIOOptions = {}
     if (isObject(options)) {
       options = allowedFields(options, ['datacenter', 'worker', 'id', 'epoch', 'seqMask'])
       if (Reflect.has(options, 'datacenter')) {
@@ -53,27 +53,27 @@ export class Snowflake {
     if (!this.instances.has(instanceKey)) {
       this.instances.set(instanceKey, this.maker(defaultOptions))
     }
-    return this.instances.get(instanceKey) as FlakeId
+    return this.instances.get(instanceKey) as SnowflakeId
   }
 
   /**
    * @description 快速生成雪花id，Buffer
    */
-  static generateSnowflakeIdBuffer(options?: SnowflakeOptions): Buffer {
+  static generateSnowflakeIdBuffer(options?: SnowflakeIOOptions): Buffer {
     return this.generate(options)
   }
 
   /**
    * @description 快速生成雪花id，BigInt
    */
-  static generateSnowflakeIdBigint(options?: SnowflakeOptions): BigInt {
+  static generateSnowflakeIdBigint(options?: SnowflakeIOOptions): BigInt {
     return bufToBigint(this.generateSnowflakeIdBuffer(options))
   }
 
   /**
    * @description 快速生成雪花id，String(BigInt)
    */
-  static generateSnowflakeIdString(options?: SnowflakeOptions): BigInt2String {
+  static generateSnowflakeIdString(options?: SnowflakeIOOptions): BigInt2String {
     return String(this.generateSnowflakeIdBigint(options))
   }
 
@@ -94,7 +94,7 @@ export class Snowflake {
  * @param options
  * @return Buffer
  */
-export const generateSnowflakeIdBuffer = (options?: SnowflakeOptions): Buffer => {
+export const generateSnowflakeIdBuffer = (options?: SnowflakeIOOptions): Buffer => {
   return isObject(options) ? Snowflake.generate(options) : Snowflake.generate()
 }
 
@@ -103,7 +103,7 @@ export const generateSnowflakeIdBuffer = (options?: SnowflakeOptions): Buffer =>
  * @param options
  * @return BigInt
  */
-export const generateSnowflakeIdBigint = (options?: SnowflakeOptions): BigInt => {
+export const generateSnowflakeIdBigint = (options?: SnowflakeIOOptions): BigInt => {
   return bufToBigint(generateSnowflakeIdBuffer(options))
 }
 
@@ -112,7 +112,7 @@ export const generateSnowflakeIdBigint = (options?: SnowflakeOptions): BigInt =>
  * @param options
  * @return String(BigInt)
  */
-export const generateSnowflakeIdString = (options?: SnowflakeOptions): BigInt2String => {
+export const generateSnowflakeIdString = (options?: SnowflakeIOOptions): BigInt2String => {
   return String(generateSnowflakeIdBigint(options))
 }
 
@@ -120,6 +120,8 @@ export const generateSnowflakeIdString = (options?: SnowflakeOptions): BigInt2St
  * 快速生成雪花id，String(BigInt)
  * @param options
  */
-export const snowflakeId = (options?: SnowflakeOptions): BigInt2String => {
+export const snowflakeId = (options?: SnowflakeIOOptions): BigInt2String => {
   return generateSnowflakeIdString(options)
 }
+
+export { SnowflakeIOOptions }

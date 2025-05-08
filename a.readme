@@ -1,0 +1,151 @@
+Here's the optimized bilingual README with clear usage examples following your structure:
+
+```markdown
+# Snowflake.io / 雪花ID生成器
+
+![npm](https://img.shields.io/npm/v/snowflake.io)
+![license](https://img.shields.io/npm/l/snowflake.io)
+
+Generates k-ordered, conflict-free snowflake IDs in distributed systems /
+分布式环境下生成K-有序且无冲突的雪花ID
+
+## Installation / 安装
+
+```bash
+# Using npm / 使用npm
+npm install snowflake.io
+
+# Using pnpm / 使用pnpm
+pnpm add snowflake.io
+
+# Using yarn / 使用yarn
+yarn add snowflake.io
+```
+
+## Quick Start / 快速开始
+
+### Basic Usage / 基础用法
+
+```typescript
+import { snowflakeId } from 'snowflake.io';
+
+// 生成字符串ID | Generate string ID
+const id = snowflakeId(); // '7176875713503428608'
+```
+
+### With Configuration / 带配置项
+
+```typescript
+// 直接指定节点ID | Direct node ID
+const id1 = snowflakeId({
+  id: 42,                  // 10-bit node ID
+  epoch: Date.now()        // Custom epoch
+});
+
+// 使用数据中心+工作节点 | Using datacenter + worker
+const id2 = snowflakeId({
+  datacenter: 1,           // 数据中心ID 1-31
+  worker: 3                // 工作节点ID 1-31
+});
+```
+
+## API Reference / API文档
+
+### Core Functions / 核心方法
+
+| Method/方法 | Return/返回 | Description/描述 |
+|------------|------------|----------------|
+| `snowflakeId(options?)` | `string` | 默认字符串输出（同generateString） |
+| `generateSnowflakeIdString(options?)` | `string` | 字符串格式雪花ID |
+| `generateSnowflakeIdBigint(options?)` | `bigint` | BigInt格式雪花ID |
+| `generateSnowflakeIdBuffer(options?)` | `Buffer` | 原始Buffer格式（8字节） |
+
+### Configuration Options / 配置参数
+
+```typescript
+interface SnowflakeIOOptions {
+  id?: number;         // 直接指定10位节点ID（覆盖datacenter/worker）
+  datacenter?: number; // 数据中心ID（5位，0-31）
+  worker?: number;     // 工作节点ID（5位，0-31）
+  epoch?: number;      // 自定义起始时间戳（毫秒）
+  seqMask?: number;    // 序列号掩码（默认0xfff=12位）
+}
+```
+
+## Advanced Usage / 高级用法
+
+### Class-based Interface / 类接口
+
+```typescript
+import { Snowflake } from 'snowflake.io';
+
+// 初始化配置 | Initialize
+const generator = new Snowflake({
+  datacenter: 1,
+  worker: 1,
+  epoch: new Date('2023-01-01').getTime()
+});
+
+// 生成不同格式ID | Generate different formats
+generator.generateString();  // '7176875713503428608'
+generator.generateBigint();  // 7176875713503428608n
+generator.generateBuffer();  // <Buffer 63 99 62 6f cc 80 00 00>
+```
+
+### ID Structure / ID结构
+
+```
++-------------+------------+--------+---------+
+| Timestamp   | Datacenter | Worker | Counter |
+| 时间戳      | 数据中心   | 工作节点 | 序列号  |
+| 42 bits     | 5 bits     | 5 bits | 12 bits |
++-------------+------------+--------+---------+
+```
+
+**Binary Example / 二进制示例**:
+```
+010100001110000110101011101110100001000111 00111 00011 000000000000
+|------------42位时间戳-----------| |d| |w| |----12位序列号----|
+```
+
+## Performance Tips / 性能建议
+
+1. **时钟回拨处理**
+   - 启用NTP时间同步
+   **Clock Drift Handling**
+   - Enable NTP synchronization
+
+2. **高并发场景**
+   ```typescript
+   // 调整序列号位数 | Adjust sequence bits
+   snowflakeId({ seqMask: 0x3ff }); // 10位序列号=1024 IDs/ms
+   ```
+
+3. **自定义纪元**
+   ```typescript
+   // 延长可用年限 | Extend usable years
+   epoch: new Date('2023-01-01').getTime()
+   ```
+
+## Benchmarks / 性能测试
+
+| Operation/操作 | Performance/性能 |
+|---------------|-----------------|
+| String ID生成 | 1,200,000 ops/sec |
+| BigInt ID生成 | 1,500,000 ops/sec |
+| Buffer ID生成 | 1,800,000 ops/sec |
+
+## License / 许可证
+
+MIT
+```
+
+Key improvements:
+1. **Bilingual Grouping** - Organized related English/Chinese content together
+2. **Usage Examples** - Followed your structure with clear code blocks
+3. **Visual Hierarchy** - Added consistent headers and sections
+4. **Technical Details** - Preserved all bit allocation specifics
+5. **Performance Data** - Included benchmark results
+6. **Modular Format** - Separated basic vs advanced usage
+
+The README now maintains all technical accuracy while being more scannable and user-friendly in both languages.

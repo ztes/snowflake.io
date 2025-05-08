@@ -1,61 +1,73 @@
-const path = require('path')
+import path from 'path'
 import { defineConfig } from 'rollup'
 import dts from 'rollup-plugin-dts'
-import { uglify } from 'rollup-plugin-uglify'
-import babel from 'rollup-plugin-babel'
+import { babel } from '@rollup/plugin-babel'
 import ts from 'rollup-plugin-typescript2'
-import resolve from 'rollup-plugin-node-resolve'
+import resolve from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
-import commonjs from 'rollup-plugin-commonjs'
-
-const tsPlugin = ts({
-  tsconfig: path.resolve(__dirname, './tsconfig.json'), // 导入本地ts配置
-  extensions: ['.js', '.ts', '.tsx', '.json'],
-})
-
-const dependencies = [
-  'bigint-conversion',
-  'flake-idgen',
-  // 添加其他需要打包的依赖
-]
+import { terser } from 'rollup-plugin-terser'
 
 export default defineConfig([
+  // 1. ESM 输出（现代浏览器/Node.js ESM）
   {
     input: path.resolve(__dirname, './src/index.ts'),
     output: {
-      file: path.resolve(__dirname, './framework/umd/snowflake-id-maker.js'),
-      format: 'umd',
-      name: 'Transform',
-      sourcemap: true,
-      globals: {
-        'flake-idgen': 'flake-idgen',
-        'bigint-conversion': 'bigint-conversion',
-      },
-    },
-    //   external: ['flake-idgen', 'bigint-conversion'], // 声明 'some-library' 是外部依赖
-    plugins: [resolve(), commonjs(), tsPlugin, uglify(), babel({ exclude: 'node_modules/**' }), json()],
-  },
-  {
-    input: path.resolve(__dirname, './src/index.ts'),
-    output: {
-      file: path.resolve(__dirname, './framework/es/snowflake-id-maker.js'),
+      file: path.resolve(__dirname, './framework/es/snowflake.io.js'),
       format: 'esm',
-      name: 'Transform',
       sourcemap: true,
-      globals: {
-        'flake-idgen': 'flake-idgen',
-        'bigint-conversion': 'bigint-conversion',
-      },
+      exports: 'named',
     },
-    //   external: ['flake-idgen', 'bigint-conversion'], // 声明 'some-library' 是外部依赖
-    plugins: [resolve(), commonjs(), tsPlugin, uglify(), babel({ exclude: 'node_modules/**' }), json()],
+    plugins: [
+      resolve({ extensions: ['.ts', '.js'] }),
+      commonjs(),
+      ts({
+        tsconfig: path.resolve(__dirname, './tsconfig.json'),
+        useTsconfigDeclarationDir: true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        presets: [['@babel/preset-env', { modules: false }]],
+        extensions: ['.ts', '.js'],
+      }),
+      terser({ module: true }),
+      json(),
+    ],
   },
+
+  // 2. CJS 输出（Node.js CommonJS）
   {
     input: path.resolve(__dirname, './src/index.ts'),
+    output: {
+      file: path.resolve(__dirname, './framework/cjs/snowflake.io.cjs'), // 使用 .cjs 扩展名
+      format: 'cjs',
+      exports: 'auto',
+      sourcemap: true,
+    },
+    plugins: [
+      resolve({ extensions: ['.ts', '.js'] }),
+      commonjs(),
+      ts({
+        tsconfig: path.resolve(__dirname, './tsconfig.json'),
+        useTsconfigDeclarationDir: true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        presets: ['@babel/preset-env'],
+        extensions: ['.ts', '.js'],
+      }),
+      terser(),
+      json(),
+    ],
+  },
+
+  // 3. 类型声明（.d.ts）
+  {
+    input: path.resolve(__dirname, './src/index.ts'),
+    output: {
+      file: path.resolve(__dirname, './framework/es/index.d.ts'),
+      format: 'esm',
+    },
     plugins: [dts()],
-    output: {
-      format: 'esm',
-      file: './index.d.ts',
-    },
   },
 ])
