@@ -1,4 +1,4 @@
-import type { SnowflakeIOOptions } from './constant'
+import type { SnowflakeIOOptions } from './constant.js'
 
 /**
  * 分布式ID生成器 (雪花算法改进版)

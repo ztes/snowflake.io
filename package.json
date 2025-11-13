@@ -1,25 +1,29 @@
 {
     "name": "snowflake.io",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "type": "module",
-    "main": "./framework/cjs/snowflake.io.cjs",
-    "module": "./framework/es/snowflake.io.js",
-    "description": "Snowflake.io, generates k-ordered, conflict-free snowflake IDs in a distributed environment.",
+    "main": "./lib/index.js",
+    "module": "./lib/index.js",
+    "description": "High-performance distributed unique ID generator based on Twitter's Snowflake algorithm. Supports ESM and CommonJS with BigInt for precision.",
     "scripts": {
-        "build:pkg": "rm -rf framework && rollup --config rollup.config.js",
+        "build:pkg": "rm -rf lib && tsc",
         "create": "tsc",
-        "dev": "set NODE_ENV=developemnt&& rollup -c rollup.config.js -w",
-        "build": "rollup -c rollup.config.js",
+        "dev": "set NODE_ENV=development && tsc --watch",
+        "build": "tsc",
         "eslint:fix": "./node_modules/.bin/eslint --fix ./",
-        "publish": "npm publish --access=public"
+        "publish": "npm publish --access=public",
+        "test": "node lib/test.js",
+        "test:example": "node src/distributed-example.mjs"
     },
     "exports": {
         ".": {
-            "require": "./framework/cjs/snowflake.io.cjs",
-            "import": "./framework/es/snowflake.io.js"
-        }
+            "require": "./lib/index.js",
+            "import": "./lib/index.js",
+            "types": "./lib/index.d.ts"
+        },
+        "./package.json": "./package.json"
     },
-    "types": "./framework/es/index.d.ts",
+    "types": "./lib/index.d.ts",
     "repository": {
         "type": "git",
         "url": "https://github.com/ztes/snowflake.io.git"
@@ -29,14 +33,41 @@
     },
     "author": "ztes.com <xy@ztes.com>",
     "blog": "https://ztes.com",
+    "homepage": "https://github.com/ztes/snowflake.io#readme",
     "keywords": [
         "snowflake",
         "snowflake.io",
         "snowflake-id",
         "snowflake id",
         "flake-id",
+        "unique-id",
+        "distributed",
+        "distributed-systems",
+        "id-generator",
+        "unique-id-generator",
+        "distributed-id",
+        "twitter-snowflake",
+        "bigint",
+        "typescript",
+        "esm",
+        "commonjs",
+        "cjs",
+        "nodejs",
+        "browser",
+        "microservices",
+        "k-ordered",
+        "clock-drift",
+        "clock-skew",
+        "high-performance",
+        "scalable",
+        "uuid-alternative",
         "雪花算法",
         "雪花id",
+        "分布式id",
+        "唯一id",
+        "分布式系统",
+        "id生成器",
+        "后端",
         "backend"
     ],
     "license": "MIT",
@@ -70,8 +101,11 @@
         "rollup-plugin-uglify": "^6.0.4",
         "typescript": "^4.4.4"
     },
-    "files": ["framework/**/*", "README.md"],
+    "files": ["lib/**/*", "README.md"],
     "dependencies": {
         "bigint-conversion": "^2.4.3"
+    },
+    "engines": {
+        "node": ">=14.0.0"
     }
 }

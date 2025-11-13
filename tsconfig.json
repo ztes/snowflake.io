@@ -4,6 +4,7 @@
         "module": "esnext",  // 用 ESM 输出
         "moduleResolution": "node",
         "esModuleInterop": true,  // 关键：支持 CJS/ESM 互操作
+        "allowSyntheticDefaultImports": true,
         "outDir": "./lib",
         "declaration": true,
         "strict": true,
