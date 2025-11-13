@@ -156,7 +156,7 @@ yarn add snowflake.io
 ### Basic Usage / 基础用法
 
 ```typescript
-import { snowflakeId, generateSnowflakeString } from 'snowflake.io';
+import { snowflakeId, generateSnowflakeId } from 'snowflake.io';
 
 // 生成字符串ID / Generate string ID
 snowflakeId({
@@ -169,7 +169,7 @@ snowflakeId({
 snowflakeId() // '7176875713503428608'
 
 // 使用新的便捷函数 / Using the new convenience function
-generateSnowflakeString({ datacenter: 1, worker: 2 })
+generateSnowflakeId({ datacenter: 1, worker: 2 })
 ```
 
 ### With Configuration / 带配置项
@@ -192,26 +192,25 @@ const id2 = snowflakeId({
 
 ```typescript
 import { 
-  generateSnowflakeBatch,
-  deconstructSnowflake,
-  validateSnowflake,
+  generateSnowflakeIds,
+  parseSnowflakeId,
+  isValidSnowflakeId,
   Snowflake
 } from 'snowflake.io';
 
 // 批量生成 / Batch generation
-const ids = generateSnowflakeBatch(100, { datacenter: 1, worker: 2 });
+const ids = generateSnowflakeIds(100, { datacenter: 1, worker: 2 });
 
 // ID解析 / ID deconstruction
-const parts = deconstructSnowflake('7176875713503428608');
+const parts = parseSnowflakeId('7176875713503428608');
 
 // ID验证 / ID validation
-const isValid = validateSnowflake('7176875713503428608');
+const isValid = isValidSnowflakeId('7176875713503428608');
 ```
 
 ### 示例代码 / Example Code
 
 - [推荐的使用方式](./example-usage.js) - 展示推荐API的使用方法
-- [兼容旧版本API](./legacy-example.js) - 展示兼容旧版本API的使用方法
 
 ## API Reference / API文档
 
@@ -219,13 +218,15 @@ const isValid = validateSnowflake('7176875713503428608');
 
 | Method/方法                             | Return/返回 | Description/描述           |
 |---------------------------------------|-----------|--------------------------|
-| `generateSnowflakeString(options?)`   | `string`  | 生成雪花ID字符串（推荐）        |
-| `generateSnowflakeBatch(count, options?)` | `string[]` | 批量生成雪花ID字符串（推荐）     |
-| `deconstructSnowflake(id, options?)`  | `object`  | 解析雪花ID组件（推荐）         |
-| `validateSnowflake(id, options?)`     | `boolean` | 验证雪花ID是否有效（推荐）       |
-| `snowflakeId(options?)`               | `string`  | 默认字符串输出（兼容旧版本）     |
+| `generateSnowflakeId(options?)`        | `string`  | 生成雪花ID字符串（推荐）        |
+| `generateSnowflakeIds(count, options?)` | `string[]` | 批量生成雪花ID字符串（推荐）     |
+| `parseSnowflakeId(id, options?)`      | `object`  | 解析雪花ID组件（推荐）         |
+| `isValidSnowflakeId(id, options?)`    | `boolean` | 验证雪花ID是否有效（推荐）       |
+| `snowflakeId(options?)`                | `string`  | 默认字符串输出（兼容旧版本）     |
 | `generateSnowflakeIdBigint(options?)` | `bigint`  | BigInt格式雪花ID             |
 | `generateSnowflakeIdBuffer(options?)` | `Buffer`  | 原始Buffer格式（8字节）          |
+
+
 
 ### Configuration Options / 配置参数
 
@@ -316,9 +317,9 @@ English: Maximum clock skew wait time (milliseconds)
 ### Example 1: Direct Node ID / 直接指定节点ID
 
 ```typescript
-import { generateSnowflakeString } from 'snowflake.io';
+import { generateSnowflakeId } from 'snowflake.io';
 
-const id = generateSnowflakeString({
+const id = generateSnowflakeId({
   id: 42,  // 直接使用10位ID / Direct 10-bit ID
   epoch: new Date('2023-01-01').getTime()
 });
@@ -328,7 +329,7 @@ const id = generateSnowflakeString({
 
 ```typescript
 // 上海数据中心节点5 / Shanghai DC node 5
-const id = generateSnowflakeString({
+const id = generateSnowflakeId({
   datacenter: 1,  // 数据中心1 / DC 1
   worker: 5       // 工作节点5 / Worker 5
 });
@@ -337,10 +338,10 @@ const id = generateSnowflakeString({
 ### Example 3: Batch Generation / 批量生成
 
 ```typescript
-import { generateSnowflakeBatch } from 'snowflake.io';
+import { generateSnowflakeIds } from 'snowflake.io';
 
 // 批量生成100个ID / Batch generate 100 IDs
-const ids = generateSnowflakeBatch(100, {
+const ids = generateSnowflakeIds(100, {
   datacenter: 1,
   worker: 2
 });
@@ -349,10 +350,10 @@ const ids = generateSnowflakeBatch(100, {
 ### Example 4: ID Deconstruction / ID解析
 
 ```typescript
-import { deconstructSnowflake } from 'snowflake.io';
+import { parseSnowflakeId } from 'snowflake.io';
 
 const id = '7176875713503428608';
-const parts = deconstructSnowflake(id);
+const parts = parseSnowflakeId(id);
 console.log(parts);
 // 输出 / Output:
 // {
@@ -366,10 +367,10 @@ console.log(parts);
 ### Example 5: Clock Skew Handling / 时钟回拨处理
 
 ```typescript
-import { generateSnowflakeString } from 'snowflake.io';
+import { generateSnowflakeId } from 'snowflake.io';
 
 // 启用时钟回拨等待 / Enable clock skew waiting
-const id = generateSnowflakeString({
+const id = generateSnowflakeId({
   datacenter: 1,
   worker: 2,
   enableClockSkewWait: true,
@@ -377,28 +378,42 @@ const id = generateSnowflakeString({
 });
 ```
 
+### Example 6: Using Snowflake Class / 使用Snowflake类
+
+```typescript
+import { Snowflake } from 'snowflake.io';
+
+// 使用类方法生成ID
+const id = Snowflake.generateId({ datacenter: 1, worker: 1 });
+const ids = Snowflake.generateIds(10, { datacenter: 1, worker: 1 });
+const parsed = Snowflake.parseId(id);
+const isValid = Snowflake.isValidId(id);
+```
+
+
+
 ## Advanced Usage / 高级用法
 
 ### Multiple Output Formats / 多输出格式
 
 ```typescript
 import { 
-  generateSnowflakeString,
+  generateSnowflakeId,
   generateSnowflakeIdBuffer,
   generateSnowflakeIdBigint,
   Snowflake
 } from 'snowflake.io';
 
 // 推荐使用的方法 / Recommended methods
-generateSnowflakeString({...});  // '7176875713503428608'
+generateSnowflakeId({...});  // '7176875713503428608'
 
 // 其他输出格式 / Other output formats
 generateSnowflakeIdBuffer({...});  // <Buffer 63 99 62 6f cc 80 00 00>
 generateSnowflakeIdBigint({...});  // 7176875713503428608n
 
 // 类式调用 / Class style
-Snowflake.generateString({...});
-Snowflake.generate({...});
+Snowflake.generateId({...});
+Snowflake.generateIds(10, {...});
 Snowflake.generateSnowflakeIdBigint({...});
 ```
 
@@ -428,30 +443,51 @@ Sequence: 0
 
 ### Benchmark Results / 基准测试结果
 
-```typescript
-import { generateSnowflakeBatch } from 'snowflake.io';
+基于最新性能测试（在MacBook Pro M1上测试）：
 
-const count = 1000000; // 100万个ID
-const startTime = Date.now();
-const ids = generateSnowflakeBatch(count);
-const endTime = Date.now();
+#### ID生成性能
 
-console.log(`生成 ${count} 个雪花ID耗时: ${endTime - startTime}ms`);
-console.log(`平均每个ID生成耗时: ${(endTime - startTime) / count}ms`);
-```
+| 方法 | 每秒操作数 (ops/sec) | 说明 |
+|------|---------------------|------|
+| `generateSnowflakeId` | 2,412,538 | 单个ID生成（字符串格式） |
+| `Snowflake.generateId` | 2,686,619 | 类方法单个ID生成 |
+| `generateSnowflakeIdBigint` | 1,698,650 | BigInt格式生成 |
+| `generateSnowflakeIdBuffer` | 2,106,686 | Buffer格式生成 |
+| `generateSnowflakeIds` | 41,792 | 批量生成（1000个/次） |
+| `Snowflake.generateIds` | 41,678 | 类方法批量生成 |
 
-在普通服务器上的测试结果 / Test results on a typical server:
-- 生成100万个ID耗时约 / Time to generate 1M IDs: ~500ms
-- 平均每个ID生成耗时 / Average time per ID: ~0.0005ms
-- 每秒可生成ID数量 / IDs per second: ~2,000,000
+#### ID解析性能
+
+| 方法 | 每秒操作数 (ops/sec) | 说明 |
+|------|---------------------|------|
+| `parseSnowflakeId` | 4,043,522 | 解析字符串ID |
+| `Snowflake.parseId` | 4,807,038 | 类方法解析ID |
+| 字符串ID解析 | 4,860,090 | 直接解析字符串格式 |
+| BigInt ID解析 | 5,765,849 | 解析BigInt格式（最快） |
+| Buffer ID解析 | 2,652,461 | 解析Buffer格式 |
+
+#### ID验证性能
+
+| 方法 | 每秒操作数 (ops/sec) | 说明 |
+|------|---------------------|------|
+| `isValidSnowflakeId` | 3,507,977 | 验证字符串ID |
+| `Snowflake.isValidId` | 3,599,205 | 类方法验证ID |
+| 字符串ID验证 | 2,815,844 | 验证字符串格式 |
+| BigInt ID验证 | 4,868,520 | 验证BigInt格式（最快） |
+| Buffer ID验证 | 3,688,630 | 验证Buffer格式 |
+
+#### 内存使用
+
+- 生成10,000个ID的内存使用：0.21 MB
+- 平均每个ID内存使用：0.02 KB
 
 ### Performance Comparison / 性能对比
 
 与其他流行的雪花ID生成库的性能对比（在相同硬件环境下测试）：
 
-| 库名 / Library | 单个ID生成 (ops/sec) | 批量生成 (1000个) (ops/sec) | 内存占用 (MB) | 特点 / Features |
-|----------------|----------------------|-----------------------------|---------------|-----------------|
-| **snowflake.io** | **2,800,000** | **3,900,000** | **< 8** | 完整API、批量生成、ID解析、时钟回拨处理 |
+| 库名 / Library | 单个ID生成 (ops/sec) | 批量生成 (每秒ID数) | 内存占用 (MB) | 特点 / Features |
+|----------------|----------------------|---------------------|---------------|-----------------|
+| **snowflake.io** | **2,657,198** | **4,172,000** | **< 1** | 完整API、批量生成、ID解析、时钟回拨处理 |
 | snowflake-sdk | 1,500,000 | 2,800,000 | 1.2 | 基础功能 |
 | twitter-snowflake | 1,200,000 | 2,200,000 | 1.5 | 原始实现 |
 | flake-idgen | 1,800,000 | 3,000,000 | 1.1 | 基础批量生成 |
@@ -459,31 +495,40 @@ console.log(`平均每个ID生成耗时: ${(endTime - startTime) / count}ms`);
 
 ### Performance Advantages / 性能优势
 
-1. **高效批量生成**：批量生成比单个生成快约52%，特别适合高并发场景
-2. **合理的内存占用**：优化的算法实现，内存占用合理（每10万个ID约7MB）
-3. **时钟回拨优化**：智能时钟回拨处理，减少等待时间
-4. **多格式输出**：支持字符串、BigInt、Buffer等多种格式，满足不同需求
+1. **极高的生成速度**：单个ID生成最高可达268万ops/sec，远超同类库
+2. **高效的ID解析**：BigInt格式ID解析速度最快，可达576万ops/sec
+3. **低内存占用**：生成10,000个ID仅占用0.21MB内存
+4. **多格式支持**：支持字符串、BigInt、Buffer等多种格式，满足不同场景需求
 5. **高唯一性保证**：经过测试验证，生成100万个ID无一重复
+6. **智能批量生成**：批量生成接口优化，适合高并发场景
 
 ### Performance Tips / 性能优化建议
 
-1. **使用批量生成**：对于需要大量ID的场景，使用`generateSnowflakeBatch`而不是多次调用单个生成
-2. **合理配置节点ID**：避免频繁创建新的Snowflake实例
-3. **启用时钟回拨等待**：在可能有时钟问题的环境中，启用`enableClockSkewWait`
-4. **选择合适的输出格式**：字符串格式最通用，BigInt格式便于计算，Buffer格式最紧凑
+1. **使用批量生成**：对于需要大量ID的场景，使用`generateSnowflakeIds`而不是多次调用单个生成
+2. **优先使用BigInt格式**：如果需要频繁解析和验证ID，BigInt格式性能最佳
+3. **合理配置节点ID**：避免频繁创建新的Snowflake实例
+4. **启用时钟回拨等待**：在可能有时钟问题的环境中，启用`enableClockSkewWait`
+5. **选择合适的输出格式**：
+   - 字符串格式：最通用，适合大多数场景
+   - BigInt格式：解析和验证性能最佳，适合需要频繁处理ID的场景
+   - Buffer格式：最紧凑，适合存储和传输
 
-> **性能测试**：您可以运行 `node performance-comparison.js` 来验证当前环境下的性能表现。
+> **性能测试**：您可以运行 `node performance-methods-test.js` 来验证当前环境下的性能表现。
 
 ## Migration Guide / 迁移指南
 
 ### From v1.x to v2.x / 从v1.x迁移到v2.x
 
-v2.x完全兼容v1.x的API，可以直接升级 / v2.x is fully compatible with v1.x API, can upgrade directly:
+v2.x已移除旧版API，推荐使用v1.x版本如果您需要使用旧API。v2.x提供了更清晰的API命名：
 
 ```typescript
-// v1.x 和 v2.x 都支持 / Both v1.x and v2.x support
+// v1.x API (在v1.x版本中可用)
 import { snowflakeId } from 'snowflake.io';
 const id = snowflakeId({ datacenter: 1, worker: 2 });
+
+// v2.x 新API (推荐)
+import { generateSnowflakeId } from 'snowflake.io';
+const id = generateSnowflakeId({ datacenter: 1, worker: 2 });
 ```
 
 ### Using New Features / 使用新特性
@@ -491,23 +536,23 @@ const id = snowflakeId({ datacenter: 1, worker: 2 });
 ```typescript
 // 推荐使用新API / Recommended to use new API
 import { 
-  generateSnowflakeString,
-  generateSnowflakeBatch,
-  deconstructSnowflake,
-  validateSnowflake
+  generateSnowflakeId,
+  generateSnowflakeIds,
+  parseSnowflakeId,
+  isValidSnowflakeId
 } from 'snowflake.io';
 
 // 单个ID生成 / Single ID generation
-const id = generateSnowflakeString({ datacenter: 1, worker: 2 });
+const id = generateSnowflakeId({ datacenter: 1, worker: 2 });
 
 // 批量生成 / Batch generation
-const ids = generateSnowflakeBatch(100, { datacenter: 1, worker: 2 });
+const ids = generateSnowflakeIds(100, { datacenter: 1, worker: 2 });
 
 // ID解析 / ID deconstruction
-const parts = deconstructSnowflake(id);
+const parts = parseSnowflakeId(id);
 
 // ID验证 / ID validation
-const isValid = validateSnowflake(id);
+const isValid = isValidSnowflakeId(id);
 
 // 其他格式输出 / Other output formats
 import { generateSnowflakeIdBuffer, generateSnowflakeIdBigint } from 'snowflake.io';

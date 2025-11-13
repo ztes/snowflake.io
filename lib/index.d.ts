@@ -49,6 +49,39 @@ export declare class Snowflake {
         maxSequence: number;
         maxNodeId: number;
     };
+    /**
+     * @description 生成雪花ID（字符串格式）
+     * @param options
+     */
+    static generateId(options?: SnowflakeOptions): string;
+    /**
+     * @description 批量生成雪花ID（字符串格式）
+     * @param count 生成数量
+     * @param options
+     */
+    static generateIds(count: number, options?: SnowflakeOptions): string[];
+    /**
+     * @description 生成雪花ID（BigInt格式）
+     * @param options
+     */
+    static generateIdAsBigInt(options?: SnowflakeOptions): BigInt;
+    /**
+     * @description 生成雪花ID（Buffer格式）
+     * @param options
+     */
+    static generateIdAsBuffer(options?: SnowflakeOptions): Buffer;
+    /**
+     * @description 解析雪花ID
+     * @param snowflakeId
+     * @param options
+     */
+    static parseId(snowflakeId: string | Buffer | bigint, options?: SnowflakeOptions): SnowflakeDeconstructed;
+    /**
+     * @description 验证雪花ID
+     * @param snowflakeId
+     * @param options
+     */
+    static isValidId(snowflakeId: string | Buffer | bigint, options?: SnowflakeOptions): boolean;
     private maker;
     /**
      * @description 设置雪花算法配置
@@ -96,30 +129,42 @@ export declare const generateSnowflakeIdString: (options?: SnowflakeOptions) => 
  */
 export declare const snowflakeId: (options?: SnowflakeOptions) => BigInt2String;
 /**
- * 生成雪花ID字符串
+ * 生成雪花ID（字符串格式）
  * @param options
  * @returns 字符串格式的雪花ID
  */
-export declare const generateSnowflakeString: (options?: SnowflakeOptions) => string;
+export declare const generateSnowflakeId: (options?: SnowflakeOptions) => string;
 /**
- * 批量生成雪花ID字符串
+ * 批量生成雪花ID（字符串格式）
  * @param count 生成数量
  * @param options
  * @returns 字符串格式的雪花ID数组
  */
-export declare const generateSnowflakeBatch: (count: number, options?: SnowflakeOptions) => string[];
+export declare const generateSnowflakeIds: (count: number, options?: SnowflakeOptions) => string[];
+/**
+ * 生成雪花ID（BigInt格式）
+ * @param options
+ * @returns BigInt格式的雪花ID
+ */
+export declare const generateSnowflakeIdAsBigInt: (options?: SnowflakeOptions) => BigInt;
+/**
+ * 生成雪花ID（Buffer格式）
+ * @param options
+ * @returns Buffer格式的雪花ID
+ */
+export declare const generateSnowflakeIdAsBuffer: (options?: SnowflakeOptions) => Buffer;
 /**
  * 解析雪花ID
  * @param snowflakeId
  * @param options
  * @returns 解析后的雪花ID组件
  */
-export declare const deconstructSnowflake: (snowflakeId: string | Buffer | bigint, options?: SnowflakeOptions) => SnowflakeDeconstructed;
+export declare const parseSnowflakeId: (snowflakeId: string | Buffer | bigint, options?: SnowflakeOptions) => SnowflakeDeconstructed;
 /**
  * 验证雪花ID
  * @param snowflakeId
  * @param options
  * @returns 是否有效
  */
-export declare const validateSnowflake: (snowflakeId: string | Buffer | bigint, options?: SnowflakeOptions) => boolean;
+export declare const isValidSnowflakeId: (snowflakeId: string | Buffer | bigint, options?: SnowflakeOptions) => boolean;
 export { SnowflakeOptions, SnowflakeDeconstructed, SnowflakeIOOptions };

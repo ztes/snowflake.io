@@ -1,15 +1,15 @@
 import { 
   Snowflake, 
-  generateSnowflakeString, 
-  generateSnowflakeBatch,
-  deconstructSnowflake,
-  validateSnowflake,
+  generateSnowflakeId, 
+  generateSnowflakeIds,
+  parseSnowflakeId,
+  isValidSnowflakeId,
   SnowflakeOptions 
 } from './index.js'
 
 // 示例1: 基本使用
 console.log('=== 基本使用示例 ===')
-const snowflakeId1 = generateSnowflakeString()
+const snowflakeId1 = generateSnowflakeId()
 console.log('生成的雪花ID:', snowflakeId1)
 
 // 示例2: 使用自定义配置
@@ -19,22 +19,22 @@ const options: SnowflakeOptions = {
   worker: 2,
   epoch: Date.now() - 30 * 24 * 60 * 60 * 1000 // 30天前作为纪元
 }
-const snowflakeId2 = generateSnowflakeString(options)
+const snowflakeId2 = generateSnowflakeId(options)
 console.log('使用自定义配置生成的雪花ID:', snowflakeId2)
 
 // 示例3: 批量生成
 console.log('\n=== 批量生成示例 ===')
-const batchIds = generateSnowflakeBatch(5)
+const batchIds = generateSnowflakeIds(5)
 console.log('批量生成的5个雪花ID:', batchIds)
 
 // 示例4: 解析雪花ID
 console.log('\n=== 解析雪花ID示例 ===')
-const deconstructed = deconstructSnowflake(snowflakeId1)
+const deconstructed = parseSnowflakeId(snowflakeId1)
 console.log('解析雪花ID:', deconstructed)
 
 // 示例5: 验证雪花ID
 console.log('\n=== 验证雪花ID示例 ===')
-const isValid = validateSnowflake(snowflakeId1)
+const isValid = isValidSnowflakeId(snowflakeId1)
 console.log('验证雪花ID:', isValid)
 
 // 示例6: 使用类的方式
@@ -60,9 +60,9 @@ console.log('String格式ID:', stringId)
 
 // 示例9: 性能测试
 console.log('\n=== 性能测试示例 ===')
-const count = 10000
+const count = 1000
 const startTime = Date.now()
-const testIds = generateSnowflakeBatch(count)
+const testIds = generateSnowflakeIds(count)
 const endTime = Date.now()
 console.log(`生成 ${count} 个雪花ID耗时: ${endTime - startTime}ms`)
 console.log(`平均每个ID生成耗时: ${(endTime - startTime) / count}ms`)
@@ -73,5 +73,5 @@ const clockSkewOptions: SnowflakeOptions = {
   enableClockSkewWait: true,
   maxClockSkewWait: 5000 // 最大等待5秒
 }
-const clockSkewId = generateSnowflakeString(clockSkewOptions)
+const clockSkewId = generateSnowflakeId(clockSkewOptions)
 console.log('启用时钟回拨等待生成的ID:', clockSkewId)

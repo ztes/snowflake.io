@@ -68,6 +68,59 @@ export class Snowflake {
     return snowflake.getStats()
   }
 
+  // 新的命名方法（推荐使用）
+  
+  /**
+   * @description 生成雪花ID（字符串格式）
+   * @param options
+   */
+  static generateId(options: SnowflakeOptions = {}): string {
+    return this.generateString(options)
+  }
+
+  /**
+   * @description 批量生成雪花ID（字符串格式）
+   * @param count 生成数量
+   * @param options
+   */
+  static generateIds(count: number, options: SnowflakeOptions = {}): string[] {
+    return this.generateBatch(count, options)
+  }
+
+  /**
+   * @description 生成雪花ID（BigInt格式）
+   * @param options
+   */
+  static generateIdAsBigInt(options: SnowflakeOptions = {}): BigInt {
+    return this.generateSnowflakeIdBigint(options)
+  }
+
+  /**
+   * @description 生成雪花ID（Buffer格式）
+   * @param options
+   */
+  static generateIdAsBuffer(options: SnowflakeOptions = {}): Buffer {
+    return this.generate(options)
+  }
+
+  /**
+   * @description 解析雪花ID
+   * @param snowflakeId
+   * @param options
+   */
+  static parseId(snowflakeId: string | Buffer | bigint, options: SnowflakeOptions = {}): SnowflakeDeconstructed {
+    return this.deconstruct(snowflakeId, options)
+  }
+
+  /**
+   * @description 验证雪花ID
+   * @param snowflakeId
+   * @param options
+   */
+  static isValidId(snowflakeId: string | Buffer | bigint, options: SnowflakeOptions = {}): boolean {
+    return this.validate(snowflakeId, options)
+  }
+
   private maker(options: SnowflakeOptions = {}): SnowflakeId {
     return new SnowflakeId(options)
   }
@@ -185,22 +238,40 @@ export const snowflakeId = (options?: SnowflakeOptions): BigInt2String => {
 
 // 导出新的便捷函数
 /**
- * 生成雪花ID字符串
+ * 生成雪花ID（字符串格式）
  * @param options
  * @returns 字符串格式的雪花ID
  */
-export const generateSnowflakeString = (options?: SnowflakeOptions): string => {
+export const generateSnowflakeId = (options?: SnowflakeOptions): string => {
   return Snowflake.generateString(options)
 }
 
 /**
- * 批量生成雪花ID字符串
+ * 批量生成雪花ID（字符串格式）
  * @param count 生成数量
  * @param options
  * @returns 字符串格式的雪花ID数组
  */
-export const generateSnowflakeBatch = (count: number, options?: SnowflakeOptions): string[] => {
+export const generateSnowflakeIds = (count: number, options?: SnowflakeOptions): string[] => {
   return Snowflake.generateBatch(count, options)
+}
+
+/**
+ * 生成雪花ID（BigInt格式）
+ * @param options
+ * @returns BigInt格式的雪花ID
+ */
+export const generateSnowflakeIdAsBigInt = (options?: SnowflakeOptions): BigInt => {
+  return Snowflake.generateSnowflakeIdBigint(options)
+}
+
+/**
+ * 生成雪花ID（Buffer格式）
+ * @param options
+ * @returns Buffer格式的雪花ID
+ */
+export const generateSnowflakeIdAsBuffer = (options?: SnowflakeOptions): Buffer => {
+  return Snowflake.generate(options)
 }
 
 /**
@@ -209,7 +280,7 @@ export const generateSnowflakeBatch = (count: number, options?: SnowflakeOptions
  * @param options
  * @returns 解析后的雪花ID组件
  */
-export const deconstructSnowflake = (snowflakeId: string | Buffer | bigint, options?: SnowflakeOptions): SnowflakeDeconstructed => {
+export const parseSnowflakeId = (snowflakeId: string | Buffer | bigint, options?: SnowflakeOptions): SnowflakeDeconstructed => {
   return Snowflake.deconstruct(snowflakeId, options)
 }
 
@@ -219,7 +290,7 @@ export const deconstructSnowflake = (snowflakeId: string | Buffer | bigint, opti
  * @param options
  * @returns 是否有效
  */
-export const validateSnowflake = (snowflakeId: string | Buffer | bigint, options?: SnowflakeOptions): boolean => {
+export const isValidSnowflakeId = (snowflakeId: string | Buffer | bigint, options?: SnowflakeOptions): boolean => {
   return Snowflake.validate(snowflakeId, options)
 }
 
