@@ -1,31 +1,23 @@
 export interface SnowflakeOptions {
   /** 直接指定的10位节点ID (覆盖datacenter和worker) */
-  id?: number | bigint;
+  id?: number | bigint
   /** 数据中心ID (5位) */
-  datacenter?: number;
+  datacenter?: number
   /** 工作节点ID (5位) */
-  worker?: number;
+  worker?: number
   /** 自定义纪元时间戳 (毫秒) */
-  epoch?: number;
-  /** 是否启用时钟回拨等待 */
-  enableClockSkewWait?: boolean;
-  /** 时钟回拨最大等待时间 (毫秒) */
-  maxClockSkewWait?: number;
-  /** 序列号掩码 (保留兼容性) */
-  seqMask?: number;
+  epoch?: number
+  /** 时钟回拨处理策略: 'throw' 抛出异常 | 'wait' 等待 | 'auto_adjust' 自动调整 */
+  clockSkewHandler?: 'throw' | 'wait' | 'auto_adjust'
+  /** 时钟回拨最大等待时间 (毫秒)，仅当 clockSkewHandler='wait' 时有效 */
+  maxClockSkewWait?: number
 }
 
 export interface SnowflakeDeconstructed {
-  timestamp: number;
-  nodeId: number;
-  sequence: number;
-  epoch: number;
+  timestamp: number
+  nodeId: number
+  sequence: number
+  epoch: number
 }
 
-export type SnowflakeIdMode = 'Buffer' | 'BigInt' | 'String'
-export type SnowflakeId = string | Buffer | bigint
-
-export type BigInt2String = string
-
-// 保留向后兼容的别名
-export type SnowflakeIOOptions = SnowflakeOptions;
+export type SnowflakeIdInput = string | Buffer | bigint

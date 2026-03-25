@@ -1,15 +1,21 @@
 {
-    "compilerOptions": {
-        "target": "esnext",
-        "module": "esnext",  // 用 ESM 输出
-        "moduleResolution": "node",
-        "esModuleInterop": true,  // 关键：支持 CJS/ESM 互操作
-        "allowSyntheticDefaultImports": true,
-        "outDir": "./lib",
-        "declaration": true,
-        "strict": true,
-        "lib": ["esnext", "dom"],
-        "types": ["node"]
-    },
-    "include": ["src/**/*"]
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./lib",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "lib": ["ES2022"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "lib"]
 }
