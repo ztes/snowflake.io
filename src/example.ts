@@ -10,7 +10,7 @@ import {
 
 async function examples() {
   console.log('=== 基本使用示例 ===')
-  const id1 = generateId()
+  const id1 = generateId({ datacenter: 1, worker: 1 })
   console.log('生成的雪花ID:', id1)
 
   console.log('\n=== 自定义配置示例 ===')
@@ -23,7 +23,7 @@ async function examples() {
   console.log('使用自定义配置生成的雪花ID:', id2)
 
   console.log('\n=== 批量生成示例 ===')
-  const batchIds = generateIds(5)
+  const batchIds = generateIds(5, { datacenter: 1, worker: 1 })
   console.log('批量生成的5个雪花ID:', batchIds)
 
   console.log('\n=== 异步生成示例 ===')
@@ -40,7 +40,7 @@ async function examples() {
   console.log('验证雪花ID:', isValid)
 
   console.log('\n=== 获取统计信息示例 ===')
-  const stats = Snowflake.getStats()
+  const stats = Snowflake.getStats({ datacenter: 1, worker: 1 })
   console.log('雪花ID生成器统计信息:', stats)
 
   console.log('\n=== 时钟回拨策略示例 ===')
@@ -59,7 +59,7 @@ async function examples() {
   console.log('\n=== 性能测试示例 ===')
   const count = 10000
   const startTime = Date.now()
-  const testIds = generateIds(count)
+  const testIds = generateIds(count, { datacenter: 1, worker: 1 })
   const endTime = Date.now()
   console.log(`生成 ${count} 个雪花ID耗时: ${endTime - startTime}ms`)
   console.log(`平均每个ID生成耗时: ${((endTime - startTime) / count).toFixed(4)}ms`)
