@@ -1,5 +1,51 @@
 # 更新日志
 
+## [4.0.0] - 2026-03-27
+
+### 重大变更
+- **默认启用生产安全模式**：生成 ID 时必须显式传入 `{ id }` 或 `{ datacenter, worker }`
+- **移除默认隐式节点分配**：不再默认基于进程信息自动分配节点 ID
+- **范围校验改为显式报错**：`id`、`datacenter`、`worker` 超范围时不再静默截断，而是直接抛错
+
+### 新增
+- 新增 `allowUnsafeAutoNodeId` 选项，仅用于本地开发和测试环境
+- 新增 `composeNodeId(datacenter, worker)` 工具函数
+- 新增 `decomposeNodeId(nodeId)` 工具函数
+- 新增 `getNodeInfo()` 节点信息读取能力
+- 增强 `getStats()` 返回内容，增加节点信息、时钟回拨统计和自动节点模式标记
+
+### 兼容性说明
+- `parseId()` 和 `isValidId()` 仍可在未显式传入节点配置时使用
+- 仅依赖 `generateId()` / `generateIds()` 默认自动分配节点 ID 的旧代码需要迁移
+
+### 迁移指南
+如果你之前这样使用：
+
+```typescript
+import { generateId } from 'snowflake.io'
+
+const id = generateId()
+```
+
+请改为以下任一方式：
+
+```typescript
+import { composeNodeId, generateId } from 'snowflake.io'
+
+const id = generateId({ datacenter: 1, worker: 3 })
+
+const nodeId = composeNodeId(1, 3)
+const anotherId = generateId({ id: nodeId })
+```
+
+如果你只是在本地临时调试：
+
+```typescript
+const id = generateId({ allowUnsafeAutoNodeId: true })
+```
+
+请不要在生产环境使用 `allowUnsafeAutoNodeId`。
+
 ## [2.1.0] - 2025-06-23
 
 ### 重大变更

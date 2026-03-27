@@ -1,5 +1,11 @@
 import SnowflakeId from './snowflake.js'
-import type { SnowflakeOptions, SnowflakeDeconstructed, SnowflakeIdInput } from './constant.js'
+import type {
+  SnowflakeDeconstructed,
+  SnowflakeIdInput,
+  SnowflakeNodeInfo,
+  SnowflakeOptions,
+  SnowflakeStats
+} from './constant.js'
 
 class Snowflake {
   private static instance: Snowflake
@@ -31,23 +37,36 @@ class Snowflake {
   }
 
   static deconstruct(snowflakeId: SnowflakeIdInput, options: SnowflakeOptions = {}): SnowflakeDeconstructed {
-    const snowflake = this.getOrCreateInstance(options)
+    const snowflake = this.getOrCreateDecoderInstance(options)
     return snowflake.deconstruct(snowflakeId)
   }
 
   static validate(snowflakeId: SnowflakeIdInput, options: SnowflakeOptions = {}): boolean {
-    const snowflake = this.getOrCreateInstance(options)
+    const snowflake = this.getOrCreateDecoderInstance(options)
     return snowflake.validate(snowflakeId)
   }
 
-  static getStats(options: SnowflakeOptions = {}): ReturnType<SnowflakeId['getStats']> {
+  static getStats(options: SnowflakeOptions = {}): SnowflakeStats {
     const snowflake = this.getOrCreateInstance(options)
     return snowflake.getStats()
+  }
+
+  static getNodeInfo(options: SnowflakeOptions = {}): SnowflakeNodeInfo {
+    const snowflake = this.getOrCreateInstance(options)
+    return snowflake.getNodeInfo()
   }
 
   static getNodeId(options: SnowflakeOptions = {}): number {
     const snowflake = this.getOrCreateInstance(options)
     return snowflake.getNodeId()
+  }
+
+  static composeNodeId(datacenter: number | bigint, worker: number | bigint): number {
+    return SnowflakeId.composeNodeId(datacenter, worker)
+  }
+
+  static decomposeNodeId(nodeId: number | bigint): SnowflakeNodeInfo {
+    return SnowflakeId.decomposeNodeId(nodeId)
   }
 
   private static getOrCreateInstance(options: SnowflakeOptions): SnowflakeId {
@@ -59,6 +78,19 @@ class Snowflake {
       this.getInstance().instances.set(key, instance)
     }
     return instance
+  }
+
+  private static getOrCreateDecoderInstance(options: SnowflakeOptions): SnowflakeId {
+    if (
+      options.id !== undefined ||
+      options.datacenter !== undefined ||
+      options.worker !== undefined ||
+      options.allowUnsafeAutoNodeId === true
+    ) {
+      return this.getOrCreateInstance(options)
+    }
+
+    return this.getOrCreateInstance({ ...options, id: 0 })
   }
 
   private static createCacheKey(options: SnowflakeOptions): string {
@@ -107,6 +139,18 @@ function isValidId(snowflakeId: SnowflakeIdInput, options?: SnowflakeOptions): b
   return Snowflake.validate(snowflakeId, options)
 }
 
+function getNodeInfo(options?: SnowflakeOptions): SnowflakeNodeInfo {
+  return Snowflake.getNodeInfo(options)
+}
+
+function composeNodeId(datacenter: number | bigint, worker: number | bigint): number {
+  return Snowflake.composeNodeId(datacenter, worker)
+}
+
+function decomposeNodeId(nodeId: number | bigint): SnowflakeNodeInfo {
+  return Snowflake.decomposeNodeId(nodeId)
+}
+
 export {
   Snowflake,
   generateId,
@@ -114,7 +158,16 @@ export {
   generateIds,
   generateIdsAsync,
   parseId,
-  isValidId
+  isValidId,
+  getNodeInfo,
+  composeNodeId,
+  decomposeNodeId
 }
 
-export type { SnowflakeOptions, SnowflakeDeconstructed, SnowflakeIdInput }
+export type {
+  SnowflakeOptions,
+  SnowflakeDeconstructed,
+  SnowflakeIdInput,
+  SnowflakeNodeInfo,
+  SnowflakeStats
+}

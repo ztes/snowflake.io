@@ -1,4 +1,6 @@
 import { 
+  composeNodeId,
+  decomposeNodeId,
   Snowflake,
   generateId,
   generateIdAsync,
@@ -7,6 +9,7 @@ import {
   parseId,
   isValidId
 } from './index.js'
+import assert from 'node:assert/strict'
 
 async function runTests() {
   console.log('=== 基本测试 ===')
@@ -16,12 +19,14 @@ async function runTests() {
   console.log('生成的ID2:', id2)
   console.log('ID1 !== ID2:', id1 !== id2)
   console.log('ID长度:', id1.length)
+  assert.notEqual(id1, id2)
 
   console.log('\n=== 批量生成测试 ===')
   const batchIds = generateIds(100, { datacenter: 2, worker: 3 })
   console.log('批量生成100个ID')
   console.log('所有ID唯一:', new Set(batchIds).size === batchIds.length)
   console.log('前5个ID:', batchIds.slice(0, 5))
+  assert.equal(new Set(batchIds).size, batchIds.length)
 
   console.log('\n=== 异步生成测试 ===')
   const asyncId = await generateIdAsync({ id: 100 })
@@ -29,24 +34,44 @@ async function runTests() {
   
   const asyncIds = await generateIdsAsync(50, { id: 200 })
   console.log('异步批量生成50个ID，唯一性:', new Set(asyncIds).size === asyncIds.length)
+  assert.equal(new Set(asyncIds).size, asyncIds.length)
 
   console.log('\n=== ID解析测试 ===')
   const parts = parseId(id1, { datacenter: 1, worker: 1 })
   console.log('ID1解析结果:', parts)
   console.log('时间戳验证:', new Date(parts.timestamp).toISOString())
+  assert.equal(parts.nodeId, composeNodeId(1, 1))
 
   console.log('\n=== ID验证测试 ===')
   console.log('ID1有效性:', isValidId(id1, { datacenter: 1, worker: 1 }))
   console.log('无效ID测试:', isValidId('invalid-id'))
   console.log('空字符串测试:', isValidId(''))
   console.log('负数测试:', isValidId('-123'))
+  assert.equal(isValidId(id1, { datacenter: 1, worker: 1 }), true)
+  assert.equal(isValidId('invalid-id'), false)
 
-  console.log('\n=== 自动节点ID测试 ===')
-  const autoId1 = generateId()
-  const autoId2 = generateId()
+  console.log('\n=== 节点信息辅助方法测试 ===')
+  const composedNodeId = composeNodeId(3, 7)
+  const nodeInfo = decomposeNodeId(composedNodeId)
+  console.log('composeNodeId(3,7):', composedNodeId)
+  console.log('decomposeNodeId:', nodeInfo)
+  assert.deepEqual(nodeInfo, { nodeId: composedNodeId, datacenter: 3, worker: 7 })
+
+  console.log('\n=== 自动节点ID测试（开发模式） ===')
+  const autoId1 = generateId({ allowUnsafeAutoNodeId: true })
+  const autoId2 = generateId({ allowUnsafeAutoNodeId: true })
   console.log('自动分配节点ID生成的ID1:', autoId1)
   console.log('自动分配节点ID生成的ID2:', autoId2)
-  console.log('自动节点ID:', Snowflake.getNodeId())
+  console.log('自动节点ID:', Snowflake.getNodeId({ allowUnsafeAutoNodeId: true }))
+  assert.notEqual(autoId1, autoId2)
+
+  console.log('\n=== 缺少节点配置的安全默认测试 ===')
+  assert.throws(() => generateId(), /Snowflake node identity is required/)
+
+  console.log('\n=== 参数越界测试 ===')
+  assert.throws(() => generateId({ id: 1024 }), /id must be between 0 and 1023/)
+  assert.throws(() => generateId({ datacenter: 32, worker: 1 }), /datacenter must be between 0 and 31/)
+  assert.throws(() => generateId({ datacenter: 1, worker: 32 }), /worker must be between 0 and 31/)
 
   console.log('\n=== 时钟回拨策略测试 ===')
   const throwOptions = { id: 1, clockSkewHandler: 'throw' as const }
@@ -58,6 +83,8 @@ async function runTests() {
   console.log('\n=== 统计信息测试 ===')
   const stats = Snowflake.getStats({ datacenter: 1, worker: 1 })
   console.log('统计信息:', stats)
+  assert.equal(stats.datacenter, 1)
+  assert.equal(stats.worker, 1)
 
   console.log('\n=== 高并发测试 ===')
   const concurrentCount = 100
@@ -68,6 +95,7 @@ async function runTests() {
   const concurrentIds = await Promise.all(promises)
   console.log(`并发生成${concurrentCount}个ID`)
   console.log('所有ID唯一:', new Set(concurrentIds).size === concurrentIds.length)
+  assert.equal(new Set(concurrentIds).size, concurrentIds.length)
 
   console.log('\n=== 性能测试 ===')
   const perfCount = 10000
@@ -84,6 +112,7 @@ async function runTests() {
   console.log('Buffer长度:', bufferId.length)
   const bufferParsed = parseId(bufferId, { id: 1 })
   console.log('Buffer解析结果:', bufferParsed)
+  assert.equal(bufferId.length, 8)
 
   console.log('\n=== 所有测试完成 ===')
 }

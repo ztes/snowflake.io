@@ -1,4 +1,6 @@
 import { 
+  composeNodeId,
+  decomposeNodeId,
   Snowflake,
   generateId,
   generateIds,
@@ -18,6 +20,12 @@ async function distributedExample() {
   console.log(`节点1解析:`, parseId(dcNode1, { datacenter: 1, worker: 1 }))
   console.log('')
 
+  console.log('1.1 节点ID编解码辅助方法:')
+  const nodeId = composeNodeId(1, 5)
+  console.log(`composeNodeId(1, 5) => ${nodeId}`)
+  console.log('decomposeNodeId =>', decomposeNodeId(nodeId))
+  console.log('')
+
   console.log('2. 多数据中心配置:')
   const beijing = generateId({ datacenter: 1, worker: 1 })
   const shanghai = generateId({ datacenter: 2, worker: 1 })
@@ -28,9 +36,9 @@ async function distributedExample() {
   console.log('')
 
   console.log('3. 直接指定节点ID配置:')
-  const nodeId = 66
-  const customNodeId = generateId({ id: nodeId })
-  console.log(`自定义节点ID (${nodeId}) 生成的ID: ${customNodeId}`)
+  const customNodeIdValue = 66
+  const customNodeId = generateId({ id: customNodeIdValue })
+  console.log(`自定义节点ID (${customNodeIdValue}) 生成的ID: ${customNodeId}`)
   console.log('')
 
   console.log('4. 时钟回拨处理策略:')
@@ -101,6 +109,8 @@ async function distributedExample() {
 6. 使用批量生成API提高高并发场景下的性能
 7. 使用异步API处理并发请求
 8. 定期检查ID的唯一性，特别是在添加新节点时
+9. 生产环境必须显式传入 id 或 datacenter/worker
+10. allowUnsafeAutoNodeId 仅用于开发和测试，不要用于生产
 `)
 
   console.log('\n=== 分布式配置示例完成 ===')

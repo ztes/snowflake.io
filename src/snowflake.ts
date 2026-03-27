@@ -1,10 +1,20 @@
-import type { SnowflakeOptions, SnowflakeDeconstructed } from './constant.js'
+import { hostname } from 'node:os'
+import type {
+  SnowflakeDeconstructed,
+  SnowflakeNodeInfo,
+  SnowflakeOptions,
+  SnowflakeStats
+} from './constant.js'
 
 class SnowflakeId {
+  private static readonly DATACENTER_ID_BITS = 5n
+  private static readonly WORKER_ID_BITS = 5n
   private static readonly NODE_ID_BITS = 10n
   private static readonly SEQUENCE_BITS = 12n
   private static readonly TIMESTAMP_BITS = 41n
   
+  private static readonly MAX_DATACENTER_ID = (1n << SnowflakeId.DATACENTER_ID_BITS) - 1n
+  private static readonly MAX_WORKER_ID = (1n << SnowflakeId.WORKER_ID_BITS) - 1n
   private static readonly MAX_NODE_ID = (1n << SnowflakeId.NODE_ID_BITS) - 1n
   private static readonly MAX_SEQUENCE = (1n << SnowflakeId.SEQUENCE_BITS) - 1n
   private static readonly MAX_TIMESTAMP = (1n << SnowflakeId.TIMESTAMP_BITS) - 1n
@@ -18,6 +28,7 @@ class SnowflakeId {
   private readonly epoch: bigint
   private readonly clockSkewHandler: 'throw' | 'wait' | 'auto_adjust'
   private readonly maxClockSkewWait: number
+  private readonly autoNodeId: boolean
   
   private sequence: bigint = 0n
   private lastTimestamp: bigint = -1n
@@ -28,6 +39,7 @@ class SnowflakeId {
   private asyncLocked: boolean = false
 
   constructor(options: SnowflakeOptions = {}) {
+    this.autoNodeId = options.allowUnsafeAutoNodeId === true
     this.nodeId = this.resolveNodeId(options)
     
     if (this.nodeId < 0n || this.nodeId > SnowflakeId.MAX_NODE_ID) {
@@ -42,24 +54,40 @@ class SnowflakeId {
   }
 
   private resolveNodeId(options: SnowflakeOptions): bigint {
-    if (typeof options.id === 'number') {
-      return BigInt(options.id & 0x3ff)
+    if (options.id !== undefined) {
+      return SnowflakeId.normalizeIntegerInRange('id', options.id, SnowflakeId.MAX_NODE_ID)
     }
-    if (typeof options.id === 'bigint') {
-      return options.id & SnowflakeId.MAX_NODE_ID
+
+    if (options.datacenter !== undefined || options.worker !== undefined) {
+      const datacenter = SnowflakeId.normalizeIntegerInRange(
+        'datacenter',
+        options.datacenter ?? 0,
+        SnowflakeId.MAX_DATACENTER_ID
+      )
+      const worker = SnowflakeId.normalizeIntegerInRange(
+        'worker',
+        options.worker ?? 0,
+        SnowflakeId.MAX_WORKER_ID
+      )
+      return SnowflakeId.composeNodeIdParts(datacenter, worker)
     }
-    if (typeof options.datacenter === 'number' || typeof options.worker === 'number') {
-      const datacenter = BigInt(options.datacenter || 0) & 0x1fn
-      const worker = BigInt(options.worker || 0) & 0x1fn
-      return (datacenter << 5n) | worker
+
+    if (this.autoNodeId) {
+      return this.autoAssignNodeId()
     }
-    return this.autoAssignNodeId()
+
+    throw new Error(
+      'Snowflake node identity is required in production. ' +
+      'Pass { id } or { datacenter, worker }. ' +
+      'Use allowUnsafeAutoNodeId: true only for local development or tests.'
+    )
   }
 
   private autoAssignNodeId(): bigint {
-    const pid = process.pid
-    const hash = this.simpleHash(pid.toString())
-    return BigInt(hash % Number(SnowflakeId.MAX_NODE_ID))
+    const fingerprint = `${hostname()}#${process.pid}`
+    const hash = this.simpleHash(fingerprint)
+    const nodeCount = Number(SnowflakeId.MAX_NODE_ID + 1n)
+    return BigInt(hash % nodeCount)
   }
 
   private simpleHash(str: string): number {
@@ -80,6 +108,68 @@ class SnowflakeId {
     const maxEpoch = now - SnowflakeId.MAX_TIMESTAMP
     if (this.epoch < maxEpoch) {
       throw new Error('Epoch is too far in the past, timestamp will overflow')
+    }
+  }
+
+  private static normalizeIntegerInRange(
+    fieldName: string,
+    value: number | bigint,
+    maxValue: bigint
+  ): bigint {
+    let normalized: bigint
+
+    if (typeof value === 'number') {
+      if (!Number.isInteger(value)) {
+        throw new Error(`${fieldName} must be an integer, got ${value}`)
+      }
+      normalized = BigInt(value)
+    } else {
+      normalized = value
+    }
+
+    if (normalized < 0n || normalized > maxValue) {
+      throw new Error(`${fieldName} must be between 0 and ${maxValue}, got ${normalized}`)
+    }
+
+    return normalized
+  }
+
+  static composeNodeIdParts(datacenter: bigint, worker: bigint): bigint {
+    if (datacenter < 0n || datacenter > SnowflakeId.MAX_DATACENTER_ID) {
+      throw new Error(
+        `datacenter must be between 0 and ${SnowflakeId.MAX_DATACENTER_ID}, got ${datacenter}`
+      )
+    }
+
+    if (worker < 0n || worker > SnowflakeId.MAX_WORKER_ID) {
+      throw new Error(`worker must be between 0 and ${SnowflakeId.MAX_WORKER_ID}, got ${worker}`)
+    }
+
+    return (datacenter << SnowflakeId.WORKER_ID_BITS) | worker
+  }
+
+  static composeNodeId(datacenter: number | bigint, worker: number | bigint): number {
+    const datacenterId = SnowflakeId.normalizeIntegerInRange(
+      'datacenter',
+      datacenter,
+      SnowflakeId.MAX_DATACENTER_ID
+    )
+    const workerId = SnowflakeId.normalizeIntegerInRange(
+      'worker',
+      worker,
+      SnowflakeId.MAX_WORKER_ID
+    )
+
+    return Number(SnowflakeId.composeNodeIdParts(datacenterId, workerId))
+  }
+
+  static decomposeNodeId(nodeId: number | bigint): SnowflakeNodeInfo {
+    const normalized = SnowflakeId.normalizeIntegerInRange('id', nodeId, SnowflakeId.MAX_NODE_ID)
+
+    return {
+      nodeId: Number(normalized),
+      datacenter: Number(normalized >> SnowflakeId.WORKER_ID_BITS),
+      worker: Number(normalized & SnowflakeId.MAX_WORKER_ID)
     }
   }
 
@@ -416,16 +506,27 @@ class SnowflakeId {
     }
   }
 
-  public getStats() {
+  public getNodeInfo(): SnowflakeNodeInfo {
+    return SnowflakeId.decomposeNodeId(this.nodeId)
+  }
+
+  public getStats(): SnowflakeStats {
+    const nodeInfo = this.getNodeInfo()
+
     return {
-      nodeId: Number(this.nodeId),
+      ...nodeInfo,
       epoch: Number(this.epoch),
       lastTimestamp: Number(this.lastTimestamp),
       sequence: Number(this.sequence),
       maxSequence: Number(SnowflakeId.MAX_SEQUENCE),
       maxNodeId: Number(SnowflakeId.MAX_NODE_ID),
+      maxDatacenterId: Number(SnowflakeId.MAX_DATACENTER_ID),
+      maxWorkerId: Number(SnowflakeId.MAX_WORKER_ID),
       clockBackwardsCount: this.clockBackwardsCount,
-      totalGenerated: this.totalGenerated
+      totalGenerated: this.totalGenerated,
+      clockSkewHandler: this.clockSkewHandler,
+      maxClockSkewWait: this.maxClockSkewWait,
+      autoNodeId: this.autoNodeId
     }
   }
 
